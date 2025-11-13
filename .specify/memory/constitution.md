@@ -1,50 +1,29 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# nanobanana Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Simplicity
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Clarity and minimal abstraction MUST guide all design decisions. Do not add features, layers, or complexity until there is a concrete need. Favor straightforward, understandable code over clever abstractions. Avoid over-engineering; prefer readable solutions even if they require more explicit code. This principle prevents technical debt and keeps the codebase maintainable as it grows.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Integration Testing
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+Comprehensive integration testing is mandatory for all inter-service communication, library contracts, and shared schemas. Every new library must have contract tests; every contract change must be tested; all data exchanges between services require integration tests. Integration tests verify real-world interactions, not just unit behavior. They catch breaking changes and ensure all services understand each other correctly.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Versioning & Breaking Changes
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
-
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+All releases MUST follow MAJOR.MINOR.PATCH semantic versioning. Any breaking change to public APIs or data contracts MUST increment MAJOR. Backwards-compatible features increment MINOR. Bug fixes and patches increment PATCH. Breaking changes must be clearly documented and communicated; migration paths SHOULD be provided. Version bumps indicate the stability and compatibility guarantee of each release.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution is the source of truth for development practices. All development decisions should be guided by these principles. Deviations are permitted when justified by business or technical constraints, but such justifications MUST be documented and visible to the team.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Amendments to this constitution require:
+- Clear documentation of what is changing and why
+- Update to the version number (using semantic versioning rules)
+- A note in "Last Amended" date
+- Review of all dependent artifacts (.specify templates and runtime guidance)
+
+This constitution supersedes ad-hoc practices. When in doubt about how to proceed, consult these principles.
+
+**Version**: 1.0.0 | **Ratified**: 2025-11-13 | **Last Amended**: 2025-11-13

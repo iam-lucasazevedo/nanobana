@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \".specify/scripts/powershell/create-new-feature.ps1 -Json -Number 1 -ShortName ''nano-banana-app'' ''Build a simple web app that uses the kie.ai Nano Banana image models with the user API key. Context: We will use kie.ai Nano Banana models: Text-only generation (no image upload) and Edit model (upload up to 10 images and edit them). Assume the API key is already configured in a safe way (do NOT hard-code the raw key in the code). What: Let the user choose between two modes: Create from text (Nano Banana text-only) and Edit existing images (Nano Banana Edit, with image upload). For Create from text: User writes a prompt and chooses basic options (size, style, aspect ratio). The app sends this to the Nano Banana generation endpoint to create static marketing creatives (ads, thumbnails, banners). For Edit existing images: User uploads up to 10 images, writes an edit prompt and chooses basic options. The app sends this to the Nano Banana Edit endpoint to generate edited/variant images. After each request: Show previews of the generated images. Allow the user to download the images and reuse the same settings to iterate. Why: Make it very easy for non-technical users to use the Nano Banana models inside kie.ai without reading the API docs. Hide all technical details behind a simple, friendly interface focused on creative results. Help users quickly test different prompts and styles to find better-performing static ad creatives.''\")",
+      "Bash(dir \"C:\\Users\\Lucas\\nanobanana\\specs\\001-nano-banana-app\")",
+      "Bash(dir \"C:\\Users\\Lucas\\nanobanana\\specs\\001-nano-banana-app\\contracts\")",
+      "Bash(powershell -Command:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(xargs:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm test:*)",
+      "Bash(dir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

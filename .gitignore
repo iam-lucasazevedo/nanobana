@@ -1,0 +1,67 @@
+# Node.js / npm
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+dist/
+build/
+*.log
+*.log.*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Testing
+coverage/
+.nyc_output/
+.jest_cache/
+
+# Temporary files
+*.tmp
+*.temp
+.turbo/
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor backups
+*.bak
+*.backup
+*#
+#*#
+
+# Backend specific
+backend/data/
+backend/dist/
+backend/.env
+
+# Frontend specific
+frontend/dist/
+frontend/.env
+
+# Specs and documentation
+specs/*/research.md
+specs/*/plan.md
+specs/*/tasks.md
