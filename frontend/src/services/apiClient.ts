@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-const API_BASE_URL = (import.meta as any).env?.MODE === 'production' ? '/api' : 'http://localhost:3001/api';
+// Use VITE_API_URL environment variable if set, otherwise use defaults
+const API_BASE_URL = (import.meta as any).env.VITE_API_URL ||
+  ((import.meta as any).env?.MODE === 'production' ? '/api' : 'http://localhost:3001/api');
 const API_TIMEOUT = 30000;
 
 export interface ApiError {
