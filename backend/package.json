@@ -1,0 +1,56 @@
+{
+  "name": "nano-banana-backend",
+  "version": "0.1.0",
+  "description": "Express backend for Nano Banana image generation web app",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --import tsx/esm src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:contract": "jest --testPathPattern=contract",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "db:init": "ts-node src/utils/db.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.10.6",
+    "@types/sqlite3": "^3.1.8",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "nano-banana",
+    "image-generation",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT"
+}
