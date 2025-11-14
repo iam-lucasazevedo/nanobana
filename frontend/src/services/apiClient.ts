@@ -1,8 +1,13 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 // Use VITE_API_URL environment variable if set, otherwise use defaults
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL ||
+let API_BASE_URL = (import.meta as any).env.VITE_API_URL ||
   ((import.meta as any).env?.MODE === 'production' ? '/api' : 'http://localhost:3001/api');
+
+// Ensure API_BASE_URL ends with /api if it doesn't already
+if (API_BASE_URL && !API_BASE_URL.endsWith('/api')) {
+  API_BASE_URL = `${API_BASE_URL}/api`;
+}
 const API_TIMEOUT = 30000;
 
 export interface ApiError {
