@@ -1,0 +1,362 @@
+openapi: 3.0.0
+info:
+  title: Nano Banana Backend API
+  description: Render-deployment compatible API specification
+  version: 0.2.0
+  contact:
+    name: Nano Banana Team
+
+servers:
+  - url: https://nano-banana-backend.onrender.com
+    description: Production server (Render)
+  - url: http://localhost:3001
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns application health status
+      tags:
+        - System
+      responses:
+        '200':
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/session:
+    post:
+      summary: Create new session
+      description: Initialize a new user session
+      tags:
+        - Sessions
+      responses:
+        '201':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                  createdAt:
+                    type: string
+                    format: date-time
+
+    get:
+      summary: Get session data
+      description: Retrieve full session data including preferences and request history
+      tags:
+        - Sessions
+      parameters:
+        - name: x-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionWithHistory'
+        '400':
+          description: Missing session header
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/session/preferences:
+    post:
+      summary: Update session preferences
+      description: Update user preferences for generation/editing
+      tags:
+        - Sessions
+      parameters:
+        - name: x-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                size:
+                  type: string
+                  enum: [512x512, 768x768, 1024x1024]
+                style:
+                  type: string
+                  description: Visual style (abstract, photorealistic, sketch, etc.)
+                aspectRatio:
+                  type: string
+                  enum: [1:1, 4:3, 16:9]
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  updated:
+                    type: object
+        '400':
+          description: Invalid request
+        '404':
+          description: Session not found
+
+  /api/generate:
+    post:
+      summary: Generate image from text prompt
+      description: Create image using Nano Banana text-to-image model
+      tags:
+        - Generation
+      parameters:
+        - name: x-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Image description
+                size:
+                  type: string
+                  enum: [512x512, 768x768, 1024x1024]
+                style:
+                  type: string
+                  description: Visual style
+                aspectRatio:
+                  type: string
+                  enum: [1:1, 4:3, 16:9]
+      responses:
+        '202':
+          description: Request accepted, processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: integer
+                  status:
+                    type: string
+                    enum: [pending]
+        '400':
+          description: Invalid request
+        '401':
+          description: Missing session
+        '503':
+          description: Service unavailable
+
+  /api/edit:
+    post:
+      summary: Edit existing images
+      description: Edit or vary images using Nano Banana image-to-image model
+      tags:
+        - Editing
+      parameters:
+        - name: x-session-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - prompt
+                - files
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                style:
+                  type: string
+                outputCount:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 10
+      responses:
+        '202':
+          description: Edit request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: integer
+                  status:
+                    type: string
+                    enum: [pending]
+        '400':
+          description: Invalid request
+        '413':
+          description: File too large (max 10MB per file)
+
+  /api/uploads:
+    get:
+      summary: Serve uploaded images
+      description: Retrieve image from Supabase storage
+      tags:
+        - Storage
+      parameters:
+        - name: filename
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image file
+          content:
+            image/png: {}
+        '404':
+          description: File not found
+
+components:
+  schemas:
+    SessionWithHistory:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        preferences:
+          type: object
+        generation_requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenerationRequest'
+        edit_requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/EditRequest'
+
+    GenerationRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        session_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, success, failed]
+        prompt:
+          type: string
+        style:
+          type: string
+        size:
+          type: string
+        aspect_ratio:
+          type: string
+        image_url:
+          type: string
+          format: uri
+        error_message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EditRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        session_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, success, failed]
+        source_image_url:
+          type: string
+          format: uri
+        prompt:
+          type: string
+        style:
+          type: string
+        output_count:
+          type: integer
+        output_images:
+          type: array
+          items:
+            type: string
+            format: uri
+        error_message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ErrorResponse } from '../types/models.js';
+import { getLogger } from '../utils/logger.js';
 
 export class AppError extends Error {
   constructor(
@@ -18,11 +19,13 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ): void {
-  console.error('Error:', {
-    message: err.message,
-    stack: err.stack,
+  const logger = getLogger();
+  logger.error('Request error', {
+    errorMessage: err.message,
+    errorStack: err instanceof Error ? err.stack : undefined,
     path: req.path,
-    method: req.method
+    method: req.method,
+    statusCode: err instanceof AppError ? err.statusCode : 500,
   });
 
   if (err instanceof AppError) {

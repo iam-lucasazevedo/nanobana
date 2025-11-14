@@ -5,4 +5,5 @@ services:
     region: oregon
     buildCommand: cd backend && npm ci --production=false && npm run build
     startCommand: cd backend && npm start
+    healthCheckPath: /health
     rootDir: ./
