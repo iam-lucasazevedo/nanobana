@@ -178,6 +178,32 @@ async function executeUpdate(sql: string, params: any[], client: SupabaseClient)
 }
 
 /**
+ * Parse DELETE statement and execute via Supabase
+ */
+async function executeDelete(sql: string, params: any[], client: SupabaseClient): Promise<void> {
+  // Extract table name
+  const tableMatch = sql.match(/DELETE FROM (\w+)/i);
+  if (!tableMatch) throw new Error(`Cannot parse DELETE statement: ${sql}`);
+
+  const tableName = tableMatch[1];
+
+  // Extract WHERE clause
+  const whereMatch = sql.match(/WHERE (.*?)$/i);
+  if (!whereMatch) throw new Error(`Cannot parse WHERE clause: ${sql}`);
+
+  const whereClause = whereMatch[1].trim();
+  const [whereCol] = whereClause.split('=').map(c => c.trim());
+  const whereValue = params[0];
+
+  const { error } = await client
+    .from(tableName)
+    .delete()
+    .eq(whereCol, whereValue);
+
+  if (error) throw error;
+}
+
+/**
  * Parse SELECT statement and execute via Supabase
  */
 async function executeSelect(sql: string, params: any[], client: SupabaseClient): Promise<any[]> {
@@ -230,11 +256,29 @@ function createDatabaseAdapter(): DatabaseAdapter {
 
   return {
     run(sql: string, params: any[] = [], callback: (err: Error | null) => void) {
-      Promise.resolve(executeInsert(sql, params, client))
-        .then(() => callback(null))
-        .catch((error: any) => {
-          callback(new Error(`Database error: ${error?.message || String(error)}`));
-        });
+      try {
+        // Determine statement type
+        const stmt = sql.trim().toUpperCase();
+        let promise: Promise<void>;
+
+        if (stmt.startsWith('INSERT')) {
+          promise = executeInsert(sql, params, client);
+        } else if (stmt.startsWith('UPDATE')) {
+          promise = executeUpdate(sql, params, client);
+        } else if (stmt.startsWith('DELETE')) {
+          promise = executeDelete(sql, params, client);
+        } else {
+          throw new Error(`Unsupported SQL statement: ${sql.substring(0, 50)}`);
+        }
+
+        Promise.resolve(promise)
+          .then(() => callback(null))
+          .catch((error: any) => {
+            callback(new Error(`Database error: ${error?.message || String(error)}`));
+          });
+      } catch (error: any) {
+        callback(new Error(`Database error: ${error?.message || String(error)}`));
+      }
     },
 
     get<T>(sql: string, params: any[] = [], callback: (err: Error | null, row?: T) => void) {
