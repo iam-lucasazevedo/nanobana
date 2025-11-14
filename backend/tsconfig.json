@@ -15,7 +15,6 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "types": ["node", "express"],
     "noImplicitAny": false
   },
   "include": ["src"],
