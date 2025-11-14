@@ -3,6 +3,6 @@ services:
     name: nano-banana-backend
     runtime: node
     region: oregon
-    buildCommand: cd backend && npm install --production=false && npm run build
+    buildCommand: cd backend && npm ci --production=false && npm run build
     startCommand: cd backend && npm start
     rootDir: ./
