@@ -1,6 +1,6 @@
 /**
  * Database initialization and connection management for Supabase PostgreSQL
- * Replaces SQLite with cloud-hosted PostgreSQL for production deployment
+ * Uses Supabase REST API directly for table operations (no RPC functions needed)
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -45,15 +45,15 @@ export async function initializeDatabase(): Promise<void> {
     });
 
     // Test the connection by attempting a simple query
-    const { data, error } = await supabaseClient
-      .from('sessions')
-      .select('count', { count: 'exact', head: true })
+    const { error } = await supabaseClient
+      .from('user_sessions')
+      .select('session_id', { count: 'exact', head: true })
       .limit(1);
 
     if (error) {
       throw new Error(
         `Failed to connect to Supabase database: ${error.message}. ` +
-        `Check your SUPABASE_URL and SUPABASE_ANON_KEY environment variables.`
+        `Check your SUPABASE_URL, SUPABASE_ANON_KEY, and ensure database tables exist.`
       );
     }
 
@@ -66,11 +66,31 @@ export async function initializeDatabase(): Promise<void> {
 }
 
 /**
- * Prepared statement object that provides synchronous-like interface
+ * Get the Supabase client instance
  */
-export interface PreparedStatement {
-  get(...params: any[]): any;
-  all(...params: any[]): any[];
+export function getSupabaseClient(): SupabaseClient {
+  if (!supabaseClient) {
+    throw new Error(
+      'Database not initialized. Call initializeDatabase() at startup first.'
+    );
+  }
+  return supabaseClient;
+}
+
+/**
+ * Close database connection (graceful shutdown)
+ */
+export async function closeDatabase(): Promise<void> {
+  try {
+    if (supabaseClient) {
+      const logger = initializeLogger();
+      logger.debug('Closing Supabase client');
+      supabaseClient = null;
+    }
+  } catch (error) {
+    const logger = initializeLogger();
+    logger.error('Error closing database', error as Error);
+  }
 }
 
 /**
@@ -92,7 +112,111 @@ export interface DatabaseAdapter {
     params: any[],
     callback: (err: Error | null, rows?: T[]) => void
   ): void;
-  prepare(sql: string): PreparedStatement;
+  prepare(sql: string): any;
+}
+
+/**
+ * Parse INSERT statement and execute via Supabase
+ */
+async function executeInsert(sql: string, params: any[], client: SupabaseClient): Promise<void> {
+  // Extract table name from INSERT statement
+  const tableMatch = sql.match(/INSERT INTO (\w+)/i);
+  if (!tableMatch) throw new Error(`Cannot parse INSERT statement: ${sql}`);
+
+  const tableName = tableMatch[1];
+  const columnMatch = sql.match(/\((.*?)\) VALUES/i);
+  if (!columnMatch) throw new Error(`Cannot parse column list: ${sql}`);
+
+  const columns = columnMatch[1].split(',').map(c => c.trim());
+  const data: any = {};
+
+  columns.forEach((col, idx) => {
+    data[col] = params[idx];
+  });
+
+  const { error } = await client.from(tableName).insert([data]);
+  if (error) throw error;
+}
+
+/**
+ * Parse UPDATE statement and execute via Supabase
+ */
+async function executeUpdate(sql: string, params: any[], client: SupabaseClient): Promise<void> {
+  // Extract table name
+  const tableMatch = sql.match(/UPDATE (\w+)/i);
+  if (!tableMatch) throw new Error(`Cannot parse UPDATE statement: ${sql}`);
+
+  const tableName = tableMatch[1];
+
+  // Extract SET clause
+  const setMatch = sql.match(/SET (.*?) WHERE/i);
+  if (!setMatch) throw new Error(`Cannot parse SET clause: ${sql}`);
+
+  const setClauses = setMatch[1].split(',').map(c => c.trim());
+  const data: any = {};
+  let paramIdx = 0;
+
+  setClauses.forEach(clause => {
+    const [col] = clause.split('=').map(c => c.trim());
+    data[col] = params[paramIdx++];
+  });
+
+  // Extract WHERE clause
+  const whereMatch = sql.match(/WHERE (.*?)$/i);
+  if (!whereMatch) throw new Error(`Cannot parse WHERE clause: ${sql}`);
+
+  const whereClause = whereMatch[1].trim();
+  const [whereCol] = whereClause.split('=').map(c => c.trim());
+  const whereValue = params[paramIdx];
+
+  const { error } = await client
+    .from(tableName)
+    .update(data)
+    .eq(whereCol, whereValue);
+
+  if (error) throw error;
+}
+
+/**
+ * Parse SELECT statement and execute via Supabase
+ */
+async function executeSelect(sql: string, params: any[], client: SupabaseClient): Promise<any[]> {
+  // Extract table name
+  const tableMatch = sql.match(/FROM (\w+)/i);
+  if (!tableMatch) throw new Error(`Cannot parse SELECT statement: ${sql}`);
+
+  const tableName = tableMatch[1];
+  let query = client.from(tableName).select('*');
+
+  // Parse WHERE clause if exists
+  const whereMatch = sql.match(/WHERE (.*?)(?:ORDER|LIMIT|$)/i);
+  if (whereMatch) {
+    const whereClause = whereMatch[1].trim();
+    const conditions = whereClause.split(/\s+AND\s+/i);
+
+    conditions.forEach((condition, idx) => {
+      const [col] = condition.split('=').map(c => c.trim());
+      query = query.eq(col, params[idx]);
+    });
+  }
+
+  // Parse ORDER BY clause if exists
+  const orderMatch = sql.match(/ORDER BY (\w+)(?:\s+(ASC|DESC))?/i);
+  if (orderMatch) {
+    const [, col, dir] = orderMatch;
+    query = query.order(col, { ascending: dir !== 'DESC' });
+  }
+
+  // Parse LIMIT clause if exists
+  const limitMatch = sql.match(/LIMIT (\d+)/i);
+  if (limitMatch) {
+    const limit = parseInt(limitMatch[1], 10);
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
 }
 
 /**
@@ -106,95 +230,41 @@ function createDatabaseAdapter(): DatabaseAdapter {
 
   return {
     run(sql: string, params: any[] = [], callback: (err: Error | null) => void) {
-      // Convert SQLite params to Supabase numbered params
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      // Execute through RPC
-      Promise.resolve(
-        client.rpc('exec_sql', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then(() => {
-          callback(null);
-        })
+      Promise.resolve(executeInsert(sql, params, client))
+        .then(() => callback(null))
         .catch((error: any) => {
-          callback(new Error(`Database query failed: ${error?.message || String(error)}`));
+          callback(new Error(`Database error: ${error?.message || String(error)}`));
         });
     },
 
     get<T>(sql: string, params: any[] = [], callback: (err: Error | null, row?: T) => void) {
-      // Convert SQLite params to Supabase numbered params
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      // Execute through RPC
-      Promise.resolve(
-        client.rpc('exec_sql_select', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then((response: any) => {
-          const { data, error } = response;
-          if (error) {
-            callback(new Error(`Database query failed: ${error.message}`));
-          } else {
-            const row = data && data.length > 0 ? (data[0] as T) : undefined;
-            callback(null, row);
-          }
+      Promise.resolve(executeSelect(sql, params, client))
+        .then((rows: any[]) => {
+          const row = rows && rows.length > 0 ? (rows[0] as T) : undefined;
+          callback(null, row);
         })
         .catch((error: any) => {
-          callback(new Error(`Database query failed: ${error?.message || String(error)}`));
+          callback(new Error(`Database error: ${error?.message || String(error)}`));
         });
     },
 
     all<T>(sql: string, params: any[] = [], callback: (err: Error | null, rows?: T[]) => void) {
-      // Convert SQLite params to Supabase numbered params
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      // Execute through RPC
-      Promise.resolve(
-        client.rpc('exec_sql_select', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then((response: any) => {
-          const { data, error } = response;
-          if (error) {
-            callback(new Error(`Database query failed: ${error.message}`));
-          } else {
-            callback(null, (data as T[]) || []);
-          }
+      Promise.resolve(executeSelect(sql, params, client))
+        .then((rows: any[]) => {
+          callback(null, (rows as T[]) || []);
         })
         .catch((error: any) => {
-          callback(new Error(`Database query failed: ${error?.message || String(error)}`));
+          callback(new Error(`Database error: ${error?.message || String(error)}`));
         });
     },
 
-    prepare(sql: string): PreparedStatement {
+    prepare(sql: string): any {
       return {
         get(...params: any[]): any {
-          // NOTE: This is a synchronous wrapper that won't work for async Supabase calls
-          // The generationRepository needs to be updated to use async methods
-          // For now, return a stub implementation
           getLogger().warn('synchronous db.prepare().get() is not supported with Supabase');
           return null;
         },
         all(...params: any[]): any[] {
-          // NOTE: This is a synchronous wrapper that won't work for async Supabase calls
-          // The generationRepository needs to be updated to use async methods
-          // For now, return a stub implementation
           getLogger().warn('synchronous db.prepare().all() is not supported with Supabase');
           return [];
         },
@@ -213,181 +283,4 @@ export function getDatabase(): DatabaseAdapter {
     );
   }
   return createDatabaseAdapter();
-}
-
-/**
- * Close database connection (graceful shutdown)
- */
-export async function closeDatabase(): Promise<void> {
-  try {
-    if (supabaseClient) {
-      // Supabase doesn't require explicit close, but we can sign out
-      // to clean up any auth state
-      const logger = initializeLogger();
-      logger.debug('Closing Supabase client');
-      supabaseClient = null;
-    }
-  } catch (error) {
-    const logger = initializeLogger();
-    logger.error('Error closing database', error as Error);
-  }
-}
-
-/**
- * Legacy SQLite helper wrappers - now execute against Supabase PostgreSQL
- * These wrap SQLite-style SQL in Supabase client calls
- * Note: These are compatibility wrappers. For new code, use Supabase client directly.
- */
-
-/**
- * Execute raw SQL (INSERT, UPDATE, DELETE)
- * Supports parameterized queries with ? placeholders
- */
-export async function dbRun(sql: string, params: any[] = []): Promise<void> {
-  const logger = initializeLogger();
-
-  return new Promise((resolve, reject) => {
-    if (!supabaseClient) {
-      reject(new Error('Database not initialized'));
-      return;
-    }
-
-    try {
-      // Convert SQLite-style ? parameters to Supabase numbered parameters
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      logger.debug('Executing database query', {
-        query: sql.substring(0, 100),
-        paramCount: params.length,
-      });
-
-      // Execute raw SQL through Supabase
-      Promise.resolve(
-        supabaseClient.rpc('exec_sql', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then(() => {
-          resolve();
-        })
-        .catch((error: any) => {
-          const err = new Error(`Database query failed: ${error?.message || String(error)}`);
-          logger.error('dbRun failed', err);
-          reject(err);
-        });
-    } catch (error) {
-      logger.error('dbRun failed', error as Error);
-      reject(error);
-    }
-  });
-}
-
-/**
- * Execute SQL and return a single row
- * Supports parameterized queries with ? placeholders
- */
-export async function dbGet<T>(sql: string, params: any[] = []): Promise<T | undefined> {
-  const logger = initializeLogger();
-
-  return new Promise((resolve, reject) => {
-    if (!supabaseClient) {
-      reject(new Error('Database not initialized'));
-      return;
-    }
-
-    try {
-      // Convert SQLite-style ? parameters to Supabase numbered parameters
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      logger.debug('Executing database query (get single)', {
-        query: sql.substring(0, 100),
-        paramCount: params.length,
-      });
-
-      // Use Supabase REST API for SQL execution
-      Promise.resolve(
-        supabaseClient.rpc('exec_sql_select', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then((response: any) => {
-          const { data, error } = response;
-          if (error) {
-            reject(new Error(`Database query failed: ${error.message}`));
-          } else {
-            // Return first row or undefined
-            resolve(data && data.length > 0 ? (data[0] as T) : undefined);
-          }
-        })
-        .catch((error: any) => {
-          const err = new Error(`Database query failed: ${error?.message || String(error)}`);
-          logger.error('dbGet failed', err);
-          reject(err);
-        });
-    } catch (error) {
-      logger.error('dbGet failed', error as Error);
-      reject(error);
-    }
-  });
-}
-
-/**
- * Execute SQL and return all matching rows
- * Supports parameterized queries with ? placeholders
- */
-export async function dbAll<T>(sql: string, params: any[] = []): Promise<T[]> {
-  const logger = initializeLogger();
-
-  return new Promise((resolve, reject) => {
-    if (!supabaseClient) {
-      reject(new Error('Database not initialized'));
-      return;
-    }
-
-    try {
-      // Convert SQLite-style ? parameters to Supabase numbered parameters
-      let query = sql;
-      params.forEach((param, index) => {
-        query = query.replace('?', `$${index + 1}`);
-      });
-
-      logger.debug('Executing database query (get all)', {
-        query: sql.substring(0, 100),
-        paramCount: params.length,
-      });
-
-      // Use Supabase REST API for SQL execution
-      Promise.resolve(
-        supabaseClient.rpc('exec_sql_select', {
-          sql_query: query,
-          parameters: params.length > 0 ? params : null,
-        })
-      )
-        .then((response: any) => {
-          const { data, error } = response;
-          if (error) {
-            reject(new Error(`Database query failed: ${error.message}`));
-          } else {
-            // Return all rows or empty array
-            resolve((data as T[]) || []);
-          }
-        })
-        .catch((error: any) => {
-          const err = new Error(`Database query failed: ${error?.message || String(error)}`);
-          logger.error('dbAll failed', err);
-          reject(err);
-        });
-    } catch (error) {
-      logger.error('dbAll failed', error as Error);
-      reject(error);
-    }
-  });
 }
