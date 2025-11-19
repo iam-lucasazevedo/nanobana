@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import { EnhancePromptButton } from './EnhancePromptButton';
 
 export interface RefinementFormData {
   refinementPrompt: string;
@@ -36,6 +37,7 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
   ],
   initialData = {}
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [formData, setFormData] = useState<RefinementFormData>({
     refinementPrompt: initialData.refinementPrompt || '',
     style: initialData.style || 'default',
@@ -58,6 +60,17 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
       refinementPrompt: e.target.value
     }));
   };
+
+  const handlePromptEnhanced = useCallback((enhancedPrompt: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      refinementPrompt: enhancedPrompt
+    }));
+    // Focus textarea after enhancement so user can immediately edit
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  }, []);
 
   const handleStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData((prev) => ({
@@ -89,16 +102,28 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
           Refinement Prompt
         </label>
         <textarea
+          ref={textareaRef}
           id="refinement-prompt"
           value={formData.refinementPrompt}
           onChange={handlePromptChange}
-          disabled={loading}
+          disabled={false}
           placeholder="Describe how you want to refine this image (e.g., 'make the colors more vibrant', 'add more details')"
           maxLength={1000}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-gray-50 disabled:text-gray-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          spellCheck="true"
         />
-        <div className="flex justify-between mt-1">
+        <div className="mt-3 flex gap-2">
+          <EnhancePromptButton
+            prompt={formData.refinementPrompt}
+            onPromptEnhanced={handlePromptEnhanced}
+            onError={(error) => console.error('Enhancement error:', error)}
+            buttonText="Enhance Prompt"
+            loadingText="Enhancing..."
+            className="flex-1"
+          />
+        </div>
+        <div className="flex justify-between mt-2">
           <span className="text-xs text-gray-500">
             {isPromptValid ? (
               <span className="text-green-600">✓ Valid prompt</span>

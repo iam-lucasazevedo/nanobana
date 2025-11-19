@@ -1,0 +1,156 @@
+openapi: 3.0.0
+
+info:
+  title: Prompt Enhancement API
+  version: 1.0.0
+  description: API for enhancing user prompts using n8n AI agent
+  contact:
+    name: nanobanana Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.example.com/api
+    description: Production server (placeholder)
+
+paths:
+  /enhance:
+    post:
+      summary: Enhance a prompt using AI
+      operationId: enhancePrompt
+      tags:
+        - Prompt Enhancement
+      description: |
+        Takes a user's creative prompt and returns an enhanced version processed by an AI agent via n8n.
+        The enhanced prompt is returned as plain text.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 10000
+                  description: The user's original prompt to be enhanced
+                  example: "a magical forest with glowing crystals"
+              required:
+                - prompt
+
+      parameters:
+        - name: X-Session-ID
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID to track user session (existing in project)
+
+      responses:
+        '200':
+          description: |
+            Prompt successfully enhanced. Returns plain text (not JSON).
+            The response body is the enhanced prompt as a plain text string.
+          content:
+            text/plain:
+              schema:
+                type: string
+                maxLength: 10000
+                example: |
+                  A serene magical forest landscape with bioluminescent crystal formations,
+                  ethereal glowing lights, mystical atmosphere, ultra-detailed,
+                  cinematic lighting, high resolution
+
+        '400':
+          description: Bad request - validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyPrompt:
+                  value:
+                    error: "VALIDATION_ERROR"
+                    message: "Prompt cannot be empty"
+                    statusCode: 400
+                tooLong:
+                  value:
+                    error: "VALIDATION_ERROR"
+                    message: "Prompt exceeds maximum length of 10000 characters"
+                    statusCode: 400
+
+        '401':
+          description: Unauthorized - invalid or missing session ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "UNAUTHORIZED"
+                message: "Invalid or missing X-Session-ID header"
+                statusCode: 401
+
+        '500':
+          description: |
+            Internal server error. Typically from n8n webhook failure (HTTP 500),
+            network error, or timeout. Error message is passed through from n8n.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                webhookTimeout:
+                  value:
+                    error: "ENHANCEMENT_TIMEOUT"
+                    message: "N8n webhook did not respond within 30 seconds"
+                    statusCode: 500
+                webhookError:
+                  value:
+                    error: "ENHANCEMENT_ERROR"
+                    message: "LLM timeout: No response after 25 seconds"
+                    statusCode: 500
+                networkError:
+                  value:
+                    error: "NETWORK_ERROR"
+                    message: "Unable to reach n8n endpoint"
+                    statusCode: 500
+
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "SERVICE_UNAVAILABLE"
+                message: "Enhancement service temporarily unavailable"
+                statusCode: 503
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - statusCode
+      properties:
+        error:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - UNAUTHORIZED
+            - ENHANCEMENT_ERROR
+            - ENHANCEMENT_TIMEOUT
+            - NETWORK_ERROR
+            - SERVICE_UNAVAILABLE
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        statusCode:
+          type: integer
+          description: HTTP status code

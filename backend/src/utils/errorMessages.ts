@@ -211,6 +211,63 @@ export const ErrorMessages = {
     details: 'The request contains invalid data. Please check your input.',
     statusCode: 400,
     suggestedAction: 'Review your request and try again'
+  } as ErrorInfo,
+
+  // Prompt Enhancement Errors
+  ENHANCEMENT_PROMPT_EMPTY: {
+    code: 'ENHANCEMENT_PROMPT_EMPTY',
+    message: 'Please enter a prompt to enhance',
+    details: 'The prompt field cannot be empty. Please type a prompt and try again.',
+    statusCode: 400,
+    suggestedAction: 'Type a prompt and click enhance'
+  } as ErrorInfo,
+
+  ENHANCEMENT_PROMPT_TOO_LONG: {
+    code: 'ENHANCEMENT_PROMPT_TOO_LONG',
+    message: 'Prompt too long',
+    details: 'Your prompt exceeds the maximum length of 10,000 characters. Please shorten it and try again.',
+    statusCode: 400,
+    suggestedAction: 'Reduce the length of your prompt'
+  } as ErrorInfo,
+
+  ENHANCEMENT_TIMEOUT: {
+    code: 'ENHANCEMENT_TIMEOUT',
+    message: 'Enhancement took too long',
+    details: 'The enhancement service did not respond within 30 seconds. Please try again.',
+    statusCode: 504,
+    suggestedAction: 'Try again in a moment'
+  } as ErrorInfo,
+
+  ENHANCEMENT_SERVICE_UNAVAILABLE: {
+    code: 'ENHANCEMENT_SERVICE_UNAVAILABLE',
+    message: 'Enhancement service is temporarily unavailable',
+    details: 'The AI enhancement service is currently unavailable. Please try again later.',
+    statusCode: 503,
+    suggestedAction: 'Try again in a few minutes'
+  } as ErrorInfo,
+
+  ENHANCEMENT_NETWORK_ERROR: {
+    code: 'ENHANCEMENT_NETWORK_ERROR',
+    message: 'Unable to reach enhancement service',
+    details: 'There was a network error while trying to enhance your prompt. Please check your internet connection and try again.',
+    statusCode: 503,
+    suggestedAction: 'Check your connection and try again'
+  } as ErrorInfo,
+
+  ENHANCEMENT_IN_PROGRESS: {
+    code: 'ENHANCEMENT_IN_PROGRESS',
+    message: 'Enhancement already in progress',
+    details: 'Your prompt is currently being enhanced. Please wait for it to complete before trying again.',
+    statusCode: 429,
+    suggestedAction: 'Wait for the current enhancement to complete'
+  } as ErrorInfo,
+
+  ENHANCEMENT_ERROR: {
+    code: 'ENHANCEMENT_ERROR',
+    message: 'Enhancement failed',
+    details: 'An error occurred while enhancing your prompt. Please try again.',
+    statusCode: 500,
+    suggestedAction: 'Try again or contact support'
   } as ErrorInfo
 };
 
