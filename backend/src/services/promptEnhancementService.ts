@@ -4,7 +4,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { ErrorMessages, getErrorMessage } from '../utils/errorMessages';
+import { ErrorMessages, getErrorMessage } from '../utils/errorMessages.js';
 
 /**
  * Service for enhancing user prompts using n8n AI agent

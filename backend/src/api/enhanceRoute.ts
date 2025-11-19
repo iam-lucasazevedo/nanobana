@@ -4,8 +4,8 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { promptEnhancementService } from '../services/promptEnhancementService';
-import { getErrorMessage } from '../utils/errorMessages';
+import { promptEnhancementService } from '../services/promptEnhancementService.js';
+import { getErrorMessage } from '../utils/errorMessages.js';
 
 // In-memory Map to track in-progress enhancement requests per session
 // Prevents duplicate/concurrent enhancement requests from the same user
