@@ -100,3 +100,45 @@ export interface ErrorResponse {
   error: string;
   details?: string;
 }
+
+// AI Prompt Enhancement Types
+
+/**
+ * Enhancement request sent to the backend API
+ */
+export interface EnhancementRequest {
+  originalPrompt: string;
+  sessionId: string;
+  requestTimestamp: string; // ISO 8601
+  timeoutMs?: number; // Default: 30000
+}
+
+/**
+ * Successful enhancement response from n8n webhook
+ */
+export interface EnhancementResponse {
+  enhancedPrompt: string;
+  originalPrompt: string;
+  enhancementDuration: number; // milliseconds
+}
+
+/**
+ * Error response for enhancement failures
+ */
+export interface EnhancementError {
+  error: string; // Error code identifier
+  message: string; // Human-readable error message
+  statusCode: number; // HTTP status code
+}
+
+/**
+ * Request body format for POST /api/enhance
+ */
+export type EnhanceRequestBody = {
+  prompt: string;
+};
+
+/**
+ * Response body format for POST /api/enhance (plain text)
+ */
+export type EnhanceResponseBody = string;

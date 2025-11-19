@@ -10,6 +10,7 @@ import generateRoute from './api/generateRoute.js';
 import preferencesRoute from './api/preferencesRoute.js';
 import editRoute from './api/editRoute.js';
 import refineRoute from './api/refineRoute.js';
+import enhanceRoute from './api/enhanceRoute.js';
 
 dotenv.config();
 
@@ -100,6 +101,7 @@ app.use('/api', generateRoute);
 app.use('/api', preferencesRoute);
 app.use('/api', editRoute);
 app.use('/api', refineRoute);
+app.use('/api', enhanceRoute);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -46,7 +46,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
           value={size}
           onChange={(e) => setSize(e.target.value)}
           disabled={disabled}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
         >
           {options.sizes.map((s) => (
             <option key={s} value={s}>
@@ -64,7 +64,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
           value={style}
           onChange={(e) => setStyle(e.target.value)}
           disabled={disabled}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
         >
           {options.styles.map((s) => (
             <option key={s} value={s}>
@@ -82,7 +82,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
           value={aspectRatio}
           onChange={(e) => setAspectRatio(e.target.value)}
           disabled={disabled}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
         >
           {options.aspectRatios.map((ar) => (
             <option key={ar} value={ar}>

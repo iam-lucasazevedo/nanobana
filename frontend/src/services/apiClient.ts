@@ -214,6 +214,47 @@ class ApiClient {
   }
 
   /**
+   * Enhance a prompt using AI
+   * Returns the enhanced prompt as plain text
+   */
+  async enhancePrompt(prompt: string): Promise<string> {
+    try {
+      const response = await this.client.post<string>('/enhance', { prompt }, {
+        // Expect plain text response
+        transformResponse: [(data) => {
+          // If it's already a string, return it
+          if (typeof data === 'string') {
+            return data;
+          }
+          // Otherwise try to extract from JSON
+          if (typeof data === 'object' && data !== null) {
+            return (data as any).text || (data as any).prompt || JSON.stringify(data);
+          }
+          return String(data);
+        }]
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error response
+      const axiosError = error as any;
+
+      // If it's a JSON error response, extract the message
+      if (axiosError.response?.data) {
+        const errorData = axiosError.response.data;
+        if (typeof errorData === 'object' && errorData.message) {
+          throw new Error(errorData.message);
+        } else if (typeof errorData === 'string') {
+          throw new Error(errorData);
+        }
+      }
+
+      // Fall back to standard error handling
+      const apiError = this.handleError(error);
+      throw new Error(apiError.details || apiError.error);
+    }
+  }
+
+  /**
    * Download an image from a URL (backend handles CORS)
    */
   async downloadImage(imageUrl: string): Promise<any> {

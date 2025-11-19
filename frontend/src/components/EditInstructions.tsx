@@ -33,23 +33,21 @@ export const EditInstructions: React.FC<EditInstructionsProps> = ({
         disabled={disabled}
         maxLength={maxLength}
         placeholder="e.g., Add a red border, change the background to blue, add text overlay..."
-        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-          disabled
+        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${disabled
             ? 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
-            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900'
-        } ${isAtLimit ? 'border-red-500' : isNearLimit ? 'border-yellow-500' : ''}`}
+            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-black'
+          } ${isAtLimit ? 'border-red-500' : isNearLimit ? 'border-yellow-500' : ''}`}
         rows={4}
       />
 
       <div className="mt-2 flex justify-between items-center">
         <span
-          className={`text-xs font-medium ${
-            isAtLimit
+          className={`text-xs font-medium ${isAtLimit
               ? 'text-red-600'
               : isNearLimit
-              ? 'text-yellow-600'
-              : 'text-gray-500'
-          }`}
+                ? 'text-yellow-600'
+                : 'text-gray-500'
+            }`}
         >
           {charCount} / {maxLength} characters
         </span>

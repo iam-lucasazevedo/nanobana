@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSelector, GenerationOptions, StyleOptions } from '../components/StyleSelector.js';
-import { ImagePreview } from '../components/ImagePreview.js';
 import { GenerateButton } from '../components/GenerateButton.js';
 import { ImageDetailModal } from '../components/ImageDetailModal.js';
+import { EnhancePromptButton } from '../components/EnhancePromptButton.js';
 import { RefinementFormData } from '../components/ImageRefinementForm.js';
 import { useGeneration } from '../hooks/useGeneration.js';
 import { useImageModal } from '../hooks/useImageModal.js';
@@ -49,6 +49,10 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
       aspectRatio: styleOptions.aspectRatio
     });
   };
+
+  const handlePromptEnhanced = useCallback((enhancedPrompt: string) => {
+    setPrompt(enhancedPrompt);
+  }, []);
 
   const handleDownload = async (image: any) => {
     try {
@@ -179,10 +183,20 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
               onChange={(e) => setPrompt(e.target.value)}
               disabled={loading}
               placeholder="Describe the image you want to generate..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black"
               rows={4}
               maxLength={1000}
             />
+            <div className="mt-4 flex gap-3">
+              <EnhancePromptButton
+                prompt={prompt}
+                onPromptEnhanced={handlePromptEnhanced}
+                onError={(error) => console.error('Enhancement error:', error)}
+                buttonText="Enhance Prompt"
+                loadingText="Enhancing..."
+                className="flex-1"
+              />
+            </div>
             <div className="flex justify-between mt-2">
               <p className="text-xs text-gray-500">
                 {isPromptValid ? (
@@ -220,8 +234,6 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
           onClick={handleGenerateClick}
           loading={loading}
           disabled={!isPromptValid || loading}
-          error={error ?? undefined}
-          taskState={taskState ?? undefined}
         />
 
         {/* Clear Error Button */}
@@ -257,18 +269,6 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
           </div>
         )}
       </div>
-
-      {/* Preview Section */}
-      {images.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <ImagePreview
-            images={images}
-            onDownload={handleDownload}
-            onImageClick={handleImageClick}
-            loading={false}
-          />
-        </div>
-      )}
 
       {/* Created Images Gallery */}
       {images.length > 0 && (

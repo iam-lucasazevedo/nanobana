@@ -1,18 +1,12 @@
 import { useState } from 'react';
 import { ImageData } from '../components/ImagePreview.js';
+import { RefinementResult } from '../components/ImageDetailModal.js';
 
 export interface SelectedImage extends ImageData {
   createdAt?: string;
   prompt?: string;
 }
 
-export interface RefinementResult {
-  id: string;
-  url: string;
-  width: number;
-  height: number;
-  format: string;
-}
 
 export interface ImageModalState {
   // Modal visibility and selected image

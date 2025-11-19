@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileUpload } from '../components/FileUpload.js';
 import { EditInstructions } from '../components/EditInstructions.js';
 import { UploadedImagePreview } from '../components/UploadedImagePreview.js';
 import { EditedImagePreview, EditedImage } from '../components/EditedImagePreview.js';
+import { EnhancePromptButton } from '../components/EnhancePromptButton.js';
 import { EditGenerateButton } from '../components/EditGenerateButton.js';
 import { useImageEdit } from '../hooks/useImageEdit.js';
 import { useGeneration } from '../hooks/useGeneration.js';
@@ -54,6 +55,10 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
 
     await editImages(editPrompt.trim(), style, aspectRatio);
   };
+
+  const handleEditPromptEnhanced = useCallback((enhancedPrompt: string) => {
+    setEditPrompt(enhancedPrompt);
+  }, []);
 
   const handleClearAll = () => {
     clearFiles();
@@ -115,6 +120,16 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
               disabled={loading}
               maxLength={1000}
             />
+            <div className="mt-4 flex gap-3">
+              <EnhancePromptButton
+                prompt={editPrompt}
+                onPromptEnhanced={handleEditPromptEnhanced}
+                onError={(error) => console.error('Enhancement error:', error)}
+                buttonText="Enhance Prompt"
+                loadingText="Enhancing..."
+                className="flex-1"
+              />
+            </div>
           </div>
 
           {/* Edit Options Section */}
@@ -131,7 +146,7 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-black"
                   >
                     {editOptions.styles?.map((s: string) => (
                       <option key={s} value={s}>
@@ -150,7 +165,7 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
                     value={aspectRatio}
                     onChange={(e) => setAspectRatio(e.target.value)}
                     disabled={loading}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-black"
                   >
                     {editOptions.aspectRatios?.map((ar: string) => (
                       <option key={ar} value={ar}>
