@@ -2,6 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import { ImageRefinementForm, RefinementFormData } from './ImageRefinementForm.js';
 import { ImageData } from './ImagePreview.js';
 
+export interface RefinementResult {
+  id: string;
+  url: string;
+  width: number;
+  height: number;
+  format: string;
+}
+
 interface ImageDetailModalProps {
   isOpen: boolean;
   image: ImageData | null;
@@ -13,13 +21,7 @@ interface ImageDetailModalProps {
   onRefinementSubmit?: (data: RefinementFormData) => void;
   refinementLoading?: boolean;
   refinementError?: string | null;
-  refinementResults?: Array<{
-    id: string;
-    url: string;
-    width: number;
-    height: number;
-    format: string;
-  }>;
+  refinementResults?: RefinementResult[];
 }
 
 export const ImageDetailModal: React.FC<ImageDetailModalProps> = ({

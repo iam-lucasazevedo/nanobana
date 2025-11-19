@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSelector, GenerationOptions, StyleOptions } from '../components/StyleSelector.js';
-import { ImagePreview } from '../components/ImagePreview.js';
 import { GenerateButton } from '../components/GenerateButton.js';
 import { ImageDetailModal } from '../components/ImageDetailModal.js';
 import { EnhancePromptButton } from '../components/EnhancePromptButton.js';
@@ -235,8 +234,6 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
           onClick={handleGenerateClick}
           loading={loading}
           disabled={!isPromptValid || loading}
-          error={error ?? undefined}
-          taskState={taskState ?? undefined}
         />
 
         {/* Clear Error Button */}
@@ -272,18 +269,6 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
           </div>
         )}
       </div>
-
-      {/* Preview Section */}
-      {images.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <ImagePreview
-            images={images}
-            onDownload={handleDownload}
-            onImageClick={handleImageClick}
-            loading={false}
-          />
-        </div>
-      )}
 
       {/* Created Images Gallery */}
       {images.length > 0 && (
