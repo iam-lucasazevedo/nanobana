@@ -71,6 +71,7 @@ router.post(
 
     // Get edit parameters from form data
     const editPrompt = req.body.editPrompt as string;
+    const model = (req.body.model as string) || 'google/nano-banana-edit';
     const style = (req.body.style as string) || 'default';
     const aspectRatio = (req.body.aspectRatio as string) || '1:1';
 
@@ -130,6 +131,7 @@ router.post(
       const taskPayload = await nanoBananaService.createEditTask({
         imageUrls,
         editPrompt,
+        model,
         style,
         aspectRatio
       });

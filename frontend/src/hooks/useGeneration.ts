@@ -3,6 +3,7 @@ import { apiClient } from '../services/apiClient.js';
 
 export interface GenerationOptions {
   prompt: string;
+  model?: string;
   size: string;
   style: string;
   aspectRatio: string;
@@ -116,6 +117,7 @@ export function useGeneration(): UseGenerationResult {
       // Step 1: Create generation task
       const createResponse = await apiClient.generateImages({
         prompt: opts.prompt,
+        model: opts.model,
         size: opts.size,
         style: opts.style,
         aspectRatio: opts.aspectRatio

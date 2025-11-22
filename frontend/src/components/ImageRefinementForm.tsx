@@ -110,7 +110,7 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
           placeholder="Describe how you want to refine this image (e.g., 'make the colors more vibrant', 'add more details')"
           maxLength={1000}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black"
           spellCheck="true"
         />
         <div className="mt-3 flex gap-2">
@@ -149,7 +149,7 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
           value={formData.style || 'default'}
           onChange={handleStyleChange}
           disabled={loading}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black disabled:bg-gray-50 disabled:text-gray-500"
         >
           {styleOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -169,7 +169,7 @@ export const ImageRefinementForm: React.FC<ImageRefinementFormProps> = ({
           value={formData.aspectRatio || '16:9'}
           onChange={handleAspectRatioChange}
           disabled={loading}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-black disabled:bg-gray-50 disabled:text-gray-500"
         >
           {aspectRatioOptions.map((option) => (
             <option key={option.value} value={option.value}>

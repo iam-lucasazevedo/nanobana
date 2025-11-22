@@ -95,6 +95,7 @@ class ApiClient {
    */
   async generateImages(payload: {
     prompt: string;
+    model?: string;
     size?: string;
     style?: string;
     aspectRatio?: string;

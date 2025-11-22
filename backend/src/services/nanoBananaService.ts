@@ -109,22 +109,35 @@ export class NanoBananaService {
   async createEditTask(payload: {
     imageUrls: string[];
     editPrompt: string;
+    model?: string;
     style?: string;
     aspectRatio?: string;
     callBackUrl?: string;
   }): Promise<TaskPayload> {
     try {
+      const model = payload.model || 'google/nano-banana-edit';
+      const isPro = model === 'nano-banana-pro';  // Same Pro model as generation
       const imageSize = this.mapSizeToImageSize(payload.aspectRatio);
 
+      const input: any = {
+        prompt: payload.editPrompt,
+        image_urls: payload.imageUrls,
+        output_format: 'png'
+      };
+
+      if (isPro) {
+        // Pro edit uses both aspect_ratio and resolution (same as Pro generation)
+        input.aspect_ratio = imageSize;
+        input.resolution = '1K';
+      } else {
+        // Standard edit uses image_size
+        input.image_size = imageSize;
+      }
+
       const response = await httpClient.createEditTask({
-        model: 'google/nano-banana-edit',
+        model: model,
         callBackUrl: payload.callBackUrl || 'http://localhost:3001/api/callback',
-        input: {
-          prompt: payload.editPrompt,
-          image_urls: payload.imageUrls,
-          output_format: 'png',
-          image_size: imageSize
-        }
+        input: input
       });
 
       return {

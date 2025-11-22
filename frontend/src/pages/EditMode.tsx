@@ -15,6 +15,7 @@ interface EditModeProps {
 
 export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
   const [editPrompt, setEditPrompt] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('google/nano-banana-edit');
   const [style, setStyle] = useState(sessionData?.preferredStyle || 'default');
   const [aspectRatio, setAspectRatio] = useState(
     sessionData?.preferredAspectRatio || '1:1'
@@ -53,7 +54,8 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
       return;
     }
 
-    await editImages(editPrompt.trim(), style, aspectRatio);
+    console.log('🔍 EditMode - Selected Model:', selectedModel);
+    await editImages(editPrompt.trim(), selectedModel, style, aspectRatio);
   };
 
   const handleEditPromptEnhanced = useCallback((enhancedPrompt: string) => {
@@ -96,9 +98,39 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
         </div>
 
         <div className="space-y-8">
+          {/* Model Selection */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 1: Choose Model</h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setSelectedModel('google/nano-banana-edit')}
+                className={`flex-1 py-3 px-4 rounded-lg border-2 text-left transition-all ${selectedModel === 'google/nano-banana-edit'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+              >
+                <div className="font-semibold">Nano Banana 2.5 Edit</div>
+                <div className="text-xs mt-1 opacity-75">Standard editing model</div>
+              </button>
+              <button
+                onClick={() => setSelectedModel('nano-banana-pro')}
+                className={`flex-1 py-3 px-4 rounded-lg border-2 text-left transition-all ${selectedModel === 'nano-banana-pro'
+                  ? 'border-purple-500 bg-purple-50 text-purple-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Nano Banana 3.0 Pro</span>
+                  <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">New</span>
+                </div>
+                <div className="text-xs mt-1 opacity-75">High quality editing, 1K resolution</div>
+              </button>
+            </div>
+          </div>
+
           {/* File Upload Section */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 1: Upload Images</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 2: Upload Images</h3>
             <FileUpload
               onFilesSelected={addFiles}
               disabled={loading}
@@ -113,7 +145,7 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
 
           {/* Edit Instructions Section */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 2: Describe Your Edits</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 3: Describe Your Edits</h3>
             <EditInstructions
               value={editPrompt}
               onChange={setEditPrompt}
@@ -135,7 +167,7 @@ export const EditMode: React.FC<EditModeProps> = ({ sessionData }) => {
           {/* Edit Options Section */}
           {editOptions && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 3: Choose Options</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Step 4: Choose Options</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 {/* Style Selector */}
                 <div>

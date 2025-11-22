@@ -73,6 +73,7 @@ router.post(
     try {
       const taskPayload = await nanoBananaService.createGenerationTask({
         prompt: req.body.prompt,
+        model: req.body.model,
         size: req.body.size,
         style: req.body.style,
         aspectRatio: req.body.aspectRatio

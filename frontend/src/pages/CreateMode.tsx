@@ -14,6 +14,7 @@ interface CreateModeProps {
 
 export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
   const [prompt, setPrompt] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('nano-banana');
   const [styleOptions, setStyleOptions] = useState<StyleOptions>({
     size: sessionData?.preferredSize || '1024x768',
     style: sessionData?.preferredStyle || 'default',
@@ -44,6 +45,7 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
 
     await generate({
       prompt: prompt.trim(),
+      model: selectedModel,
       size: styleOptions.size,
       style: styleOptions.style,
       aspectRatio: styleOptions.aspectRatio
@@ -171,6 +173,38 @@ export const CreateMode: React.FC<CreateModeProps> = ({ sessionData }) => {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Create from Text
         </h2>
+
+        {/* Model Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Model
+          </label>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setSelectedModel('nano-banana')}
+              className={`flex-1 py-3 px-4 rounded-lg border-2 text-left transition-all ${selectedModel === 'nano-banana'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                }`}
+            >
+              <div className="font-semibold">Nano Banana 2.5 Flash</div>
+              <div className="text-xs mt-1 opacity-75">Fast generation, standard quality</div>
+            </button>
+            <button
+              onClick={() => setSelectedModel('nano-banana-pro')}
+              className={`flex-1 py-3 px-4 rounded-lg border-2 text-left transition-all ${selectedModel === 'nano-banana-pro'
+                  ? 'border-purple-500 bg-purple-50 text-purple-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Nano Banana 3.0 Pro</span>
+                <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">New</span>
+              </div>
+              <div className="text-xs mt-1 opacity-75">High detail, 1K resolution</div>
+            </button>
+          </div>
+        </div>
 
         {/* Prompt Input */}
         <div className="space-y-4 mb-6">

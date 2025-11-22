@@ -18,7 +18,7 @@ export interface UseImageEditResult {
   addFiles: (files: File[]) => void;
   removeFile: (index: number) => void;
   clearFiles: () => void;
-  editImages: (editPrompt: string, style?: string, aspectRatio?: string) => Promise<void>;
+  editImages: (editPrompt: string, model?: string, style?: string, aspectRatio?: string) => Promise<void>;
   clearImages: () => void;
   clearError: () => void;
 }
@@ -128,7 +128,7 @@ export function useImageEdit(): UseImageEditResult {
   }, []);
 
   const editImages = useCallback(
-    async (editPrompt: string, style?: string, aspectRatio?: string) => {
+    async (editPrompt: string, model?: string, style?: string, aspectRatio?: string) => {
       setLoading(true);
       setError(null);
       setEditedImages([]);
@@ -167,6 +167,8 @@ export function useImageEdit(): UseImageEditResult {
           formData.append('images', file);
         });
         formData.append('editPrompt', editPrompt);
+        console.log('🔍 useImageEdit - Model parameter:', model);
+        if (model) formData.append('model', model);
         if (style) formData.append('style', style);
         if (aspectRatio) formData.append('aspectRatio', aspectRatio);
 
