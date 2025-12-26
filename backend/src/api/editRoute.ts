@@ -73,6 +73,7 @@ router.post(
     const editPrompt = req.body.editPrompt as string;
     const style = (req.body.style as string) || 'default';
     const aspectRatio = (req.body.aspectRatio as string) || '1:1';
+    const model = (req.body.model as string) || 'nano-banana-pro';
 
     // Validate edit request parameters
     const paramValidation = validateEditRequest({
@@ -131,7 +132,8 @@ router.post(
         imageUrls,
         editPrompt,
         style,
-        aspectRatio
+        aspectRatio,
+        model
       });
 
       taskId = taskPayload.taskId;

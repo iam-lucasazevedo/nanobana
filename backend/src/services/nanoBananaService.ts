@@ -7,7 +7,23 @@ export interface TaskPayload {
   size?: string;
   style?: string;
   aspectRatio?: string;
+  model?: string;
 }
+
+// Available models for generation
+export const GENERATION_MODELS = {
+  'nano-banana': 'google/nano-banana',
+  'nano-banana-pro': 'nano-banana-pro'
+} as const;
+
+// Available models for editing
+export const EDIT_MODELS = {
+  'nano-banana-edit': 'google/nano-banana-edit',
+  'nano-banana-pro': 'nano-banana-pro'
+} as const;
+
+export type GenerationModelKey = keyof typeof GENERATION_MODELS;
+export type EditModelKey = keyof typeof EDIT_MODELS;
 
 /**
  * Service for interacting with Nano Banana image generation APIs
@@ -23,14 +39,19 @@ export class NanoBananaService {
     style?: string;
     aspectRatio?: string;
     callBackUrl?: string;
+    model?: string;
   }): Promise<TaskPayload> {
     try {
       // Map size to image_size (aspect ratio format)
       const imageSize = this.mapSizeToImageSize(payload.size);
 
+      // Get the model identifier, default to nano-banana-pro
+      const modelKey = (payload.model || 'nano-banana-pro') as GenerationModelKey;
+      const modelId = GENERATION_MODELS[modelKey] || GENERATION_MODELS['nano-banana-pro'];
+
       // Create task via Nano Banana API
       const response = await httpClient.createGenerationTask({
-        model: 'google/nano-banana',
+        model: modelId,
         callBackUrl: payload.callBackUrl || 'http://localhost:3001/api/callback',
         input: {
           prompt: payload.prompt,
@@ -112,12 +133,17 @@ export class NanoBananaService {
     style?: string;
     aspectRatio?: string;
     callBackUrl?: string;
+    model?: string;
   }): Promise<TaskPayload> {
     try {
       const imageSize = this.mapSizeToImageSize(payload.aspectRatio);
 
+      // Get the model identifier, default to nano-banana-pro for editing
+      const modelKey = (payload.model || 'nano-banana-pro') as EditModelKey;
+      const modelId = EDIT_MODELS[modelKey] || EDIT_MODELS['nano-banana-pro'];
+
       const response = await httpClient.createEditTask({
-        model: 'google/nano-banana-edit',
+        model: modelId,
         callBackUrl: payload.callBackUrl || 'http://localhost:3001/api/callback',
         input: {
           prompt: payload.editPrompt,
@@ -147,16 +173,21 @@ export class NanoBananaService {
     style?: string;
     aspectRatio?: string;
     callBackUrl?: string;
+    model?: string;
   }): Promise<TaskPayload> {
     try {
       const imageSize = this.mapSizeToImageSize(payload.aspectRatio);
+
+      // Get the model identifier, default to nano-banana-pro for editing
+      const modelKey = (payload.model || 'nano-banana-pro') as EditModelKey;
+      const modelId = EDIT_MODELS[modelKey] || EDIT_MODELS['nano-banana-pro'];
 
       // Convert buffer to base64
       const base64Image = payload.imageBuffer.toString('base64');
       const imageData = `data:image/png;base64,${base64Image}`;
 
       const response = await httpClient.createEditTask({
-        model: 'google/nano-banana-edit',
+        model: modelId,
         callBackUrl: payload.callBackUrl || 'http://localhost:3001/api/callback',
         input: {
           prompt: payload.editPrompt,
@@ -184,11 +215,16 @@ export class NanoBananaService {
     sizes: string[];
     styles: string[];
     aspectRatios: string[];
+    models: { key: string; label: string; description: string }[];
   } {
     return {
       sizes: ['512x512', '768x768', '1024x768', '1024x1024'],
       styles: ['default', 'modern', 'minimalist', 'artistic', 'photorealistic'],
-      aspectRatios: ['1:1', '4:3', '16:9', '9:16']
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16', '3:2', '2:3'],
+      models: [
+        { key: 'nano-banana-pro', label: 'Nano Banana 3.0 Pro', description: 'Latest pro model with enhanced quality' },
+        { key: 'nano-banana', label: 'Nano Banana', description: 'Standard model' }
+      ]
     };
   }
 

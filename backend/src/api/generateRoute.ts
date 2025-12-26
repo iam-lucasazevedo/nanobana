@@ -75,7 +75,8 @@ router.post(
         prompt: req.body.prompt,
         size: req.body.size,
         style: req.body.style,
-        aspectRatio: req.body.aspectRatio
+        aspectRatio: req.body.aspectRatio,
+        model: req.body.model
       });
 
       taskId = taskPayload.taskId;

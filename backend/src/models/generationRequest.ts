@@ -19,8 +19,16 @@ export const ALLOWED_STYLES = [
 export const ALLOWED_ASPECT_RATIOS = [
   '1:1',
   '4:3',
+  '3:4',
   '16:9',
-  '9:16'
+  '9:16',
+  '3:2',
+  '2:3'
+] as const;
+
+export const ALLOWED_MODELS = [
+  'nano-banana',
+  'nano-banana-pro'
 ] as const;
 
 /**
@@ -62,6 +70,16 @@ export function validateGenerationRequest(request: any): {
   ) {
     errors.push(
       `Aspect ratio must be one of: ${ALLOWED_ASPECT_RATIOS.join(', ')}`
+    );
+  }
+
+  // Validate model
+  if (
+    request.model &&
+    !ALLOWED_MODELS.includes(request.model)
+  ) {
+    errors.push(
+      `Model must be one of: ${ALLOWED_MODELS.join(', ')}`
     );
   }
 
